@@ -7,7 +7,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import sar.pawat.restaurant.repository.UserRepository;
+import sar.pawat.restaurant.service.CustomUserDetailsService;
 import sar.pawat.restaurant.service.UserService;
 
 import java.time.Instant;
@@ -16,16 +20,19 @@ import java.time.Instant;
 public class AuthenticationEventListener {
     Logger logger = LoggerFactory.getLogger(AuthenticationEventListener.class);
     private UserService userService;
+    private UserRepository userRepository;
 
     @Autowired
-    public AuthenticationEventListener(UserService userService) {
+    public AuthenticationEventListener(UserService userService, UserRepository userRepository) {
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @EventListener
     public void onSuccess(AuthenticationSuccessEvent event) {
         final var user = (User)event.getAuthentication().getPrincipal();
-        logger.info("{} has successfully logged in at {}", user.getUsername(), Instant.now());
+        final var userDetails = userRepository.findByUsername(user.getUsername());
+        logger.info("{} [{}] has successfully logged in at {}", user.getUsername(), userDetails.getRole(), Instant.now());
     }
 
     @EventListener
