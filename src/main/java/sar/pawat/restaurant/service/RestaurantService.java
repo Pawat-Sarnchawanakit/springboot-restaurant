@@ -1,14 +1,19 @@
 package sar.pawat.restaurant.service;
 
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import sar.pawat.restaurant.dto.RestaurantRequest;
 import sar.pawat.restaurant.entity.Restaurant;
 import sar.pawat.restaurant.repository.RestaurantRepository;
 
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -22,21 +27,20 @@ public class RestaurantService {
         this.repository = repository;
     }
 
-    public List<Restaurant> getAll() {
-        return repository.findAll();
+    public Page<@NonNull Restaurant> getRestaurantsPage(PageRequest pageRequest) {
+        return repository.findAll(pageRequest);
     }
 
-    public Optional<Restaurant> getRestaurantById(UUID id) {
-        return repository.findById(id);
+    public Restaurant getRestaurantById(UUID id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
     }
 
 
     public Restaurant update(Restaurant newRestaurant) {
         final var id = newRestaurant.getId();
-        final var recordOptional = repository.findById(id);
-        if(recordOptional.isEmpty())
-            return null;
-        final var record = recordOptional.get();
+        final var record = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
         record.setName(newRestaurant.getName());
         record.setRating(newRestaurant.getRating());
         record.setLocation(newRestaurant.getLocation());
@@ -44,22 +48,28 @@ public class RestaurantService {
     }
 
     public Restaurant delete(UUID id) {
-        final var recordOptional = repository.findById(id);
-        if(recordOptional.isEmpty())
-            return null;
+        final var record = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
         repository.deleteById(id);
-        return recordOptional.get();
+        return record;
     }
 
     public Restaurant getRestaurantByName(String name) {
-        return repository.findByName(name);
+        return repository.findByName(name)
+            .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
     }
 
     public List<Restaurant> getRestaurantByLocation(String location) {
         return repository.findByLocation(location);
     }
 
-    public Restaurant create(Restaurant restaurant) {
+    public Restaurant create(RestaurantRequest restaurantRequest) {
+        if(repository.existsByName(restaurantRequest.getName()))
+            throw new EntityExistsException("Restaurant name already exists");
+        final var restaurant = new Restaurant();
+        restaurant.setLocation(restaurantRequest.getLocation());
+        restaurant.setName(restaurantRequest.getName());
+        restaurant.setRating(restaurantRequest.getRating());
         restaurant.setCreatedAt(Instant.now());
         return repository.save(restaurant);
     }
