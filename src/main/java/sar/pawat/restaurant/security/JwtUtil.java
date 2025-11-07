@@ -2,7 +2,6 @@ package sar.pawat.restaurant.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SecurityException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -45,10 +44,9 @@ public class JwtUtil {
                 .getPayload().getSubject();
     }
     // Validate JWT token
-    public boolean validateJwtToken(String token) {
+    public void validateJwtToken(String token) {
         Jwts.parser()
                 .verifyWith(key).build()
                 .parseSignedClaims(token);
-        return true;
     }
 }

@@ -27,36 +27,38 @@ public class RestaurantService {
         this.repository = repository;
     }
 
+    private static final EntityNotFoundException RESTAURANT_NOT_FOUND_EXCEPTION = new EntityNotFoundException("Restaurant not found");
+
     public Page<@NonNull Restaurant> getRestaurantsPage(PageRequest pageRequest) {
         return repository.findAll(pageRequest);
     }
 
     public Restaurant getRestaurantById(UUID id) {
         return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> RESTAURANT_NOT_FOUND_EXCEPTION);
     }
 
 
     public Restaurant update(Restaurant newRestaurant) {
         final var id = newRestaurant.getId();
-        final var record = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
-        record.setName(newRestaurant.getName());
-        record.setRating(newRestaurant.getRating());
-        record.setLocation(newRestaurant.getLocation());
-        return repository.save(record);
+        final var restaurant = repository.findById(id)
+                .orElseThrow(() -> RESTAURANT_NOT_FOUND_EXCEPTION);
+        restaurant.setName(newRestaurant.getName());
+        restaurant.setRating(newRestaurant.getRating());
+        restaurant.setLocation(newRestaurant.getLocation());
+        return repository.save(restaurant);
     }
 
     public Restaurant delete(UUID id) {
-        final var record = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+        final var restaurant = repository.findById(id)
+                .orElseThrow(() -> RESTAURANT_NOT_FOUND_EXCEPTION);
         repository.deleteById(id);
-        return record;
+        return restaurant;
     }
 
     public Restaurant getRestaurantByName(String name) {
         return repository.findByName(name)
-            .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+            .orElseThrow(() -> RESTAURANT_NOT_FOUND_EXCEPTION);
     }
 
     public List<Restaurant> getRestaurantByLocation(String location) {

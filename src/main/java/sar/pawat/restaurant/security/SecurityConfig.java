@@ -19,14 +19,17 @@ import sar.pawat.restaurant.service.CustomUserDetailsService;
 @Configuration
 public class SecurityConfig {
     @Autowired
-    CustomUserDetailsService userDetailsService;
+    private CustomUserDetailsService userDetailsService;
 
     @Autowired
     private UnauthorizedEntryPointJwt unauthorizedHandler;
 
+    @Autowired
+    private JwtUtil jwtUtils;
+
     @Bean
     public JwtAuthFilter authenticationJwtTokenFilter() {
-        return new JwtAuthFilter();
+        return new JwtAuthFilter(jwtUtils, userDetailsService);
     }
 
     @Bean
@@ -81,7 +84,7 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring()
+        return web -> web.ignoring()
                 .requestMatchers("/h2-console/**");
     }
 }

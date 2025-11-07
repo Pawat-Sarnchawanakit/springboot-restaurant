@@ -3,7 +3,6 @@ package sar.pawat.restaurant.controller;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,15 +20,16 @@ import sar.pawat.restaurant.service.UserService;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtils;
 
     @Autowired
-    AuthenticationManager authenticationManager;
-
-
-    @Autowired
-    JwtUtil jwtUtils;
+    public AuthenticationController(final UserService userService, final AuthenticationManager authenticationManager, final JwtUtil jwtUtils) {
+        this.userService = userService;
+        this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
+    }
 
 
     @PostMapping("/login")
@@ -42,6 +42,8 @@ public class AuthenticationController {
         );
         UserDetails userDetails =
                 (UserDetails) authentication.getPrincipal();
+        if(userDetails == null)
+            return ResponseEntity.badRequest().body("Invalid user");
         return ResponseEntity.ok(jwtUtils.generateToken(userDetails.getUsername()));
     }
 
