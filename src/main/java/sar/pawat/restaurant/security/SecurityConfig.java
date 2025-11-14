@@ -33,6 +33,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public JwtCookieAuthFilter authenticationJwtCookieFilter() {
+        return new JwtCookieAuthFilter(jwtUtils, userDetailsService);
+    }
+
+    @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authenticationConfiguration
     ) throws Exception {
@@ -66,8 +71,9 @@ public class SecurityConfig {
                                 .anyRequest().authenticated()
                 );
         // Add the JWT Token filter
-        http.addFilterBefore(authenticationJwtTokenFilter(),
-                UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authenticationJwtCookieFilter(), UsernamePasswordAuthenticationFilter.class);
+//        http.addFilterBefore(authenticationJwtTokenFilter(),
+//                UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
