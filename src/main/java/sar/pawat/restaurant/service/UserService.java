@@ -27,6 +27,10 @@ public class UserService {
         return userRepository.existsByUsername(username);
     }
 
+    public User getUser(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     public void createUser(SignupRequest request) {
         if(userExists(request.getUsername()))
             throw new EntityExistsException("Error: Username is already taken!");
